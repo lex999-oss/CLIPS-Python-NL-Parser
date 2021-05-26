@@ -30,6 +30,6 @@ for t in tagged:
     to_parse += t[0]
     to_parse += ","
 to_parse = to_parse.rstrip(to_parse[-1])
-print(bool(list(prolog.query(f's([{to_parse}],[])'))))
+print(bool(list(prolog.query(f'phrase(sentence(NP,VP), [{to_parse}]).'))))
 # 1. Update gramatica == reguli sau assert-uti?
 # 2. Cum ar arata un parser?

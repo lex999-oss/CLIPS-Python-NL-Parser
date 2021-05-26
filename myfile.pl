@@ -1,36 +1,15 @@
-s --> np, vp.                /* sentence */
+sentence(NP, VP) --> noun_phrase(NP), verb_phrase(VP).
+noun_phrase(np(Noun, Adj)) --> det, adjectives(Adj), noun(Noun).
 
-np --> pn.                   /* noun phrase */
-np --> d, n, rel.
+det --> [D], { det(D) }.
+det --> [].
 
-vp --> tv, np.               /* verb phrase */
-vp --> iv.
+noun(N) --> [N], { noun(N) }.
 
-rel --> [].                  /*  relative clause */
-rel --> rpn, vp.
+adjectives([]) --> [].
+adjectives([A|As]) --> adjective(A), adjectives(As).
+adjective(A) --> [A], { adj(A) }.
 
-pn --> [PN], {pn(PN)}.       /* proper noun */
-pn(mary).
-pn(henry).
+verb_phrase(vp(Verb, Noun)) --> verb(Verb), noun_phrase(Noun).
 
-rpn --> [RPN], {rpn(RPN)}.   /* relative pronoun */
-rpn(that).
-rpn(which).
-rpn(who).
-
-iv --> [IV], {iv(IV)}.       /*  intransitive verb */
-iv(runs).
-iv(sits).
-
-d --> [DET], {d(DET)}.       /* determiner */
-d(a).
-d(the).
-
-n --> [N], {n(N)}.           /* noun */
-n(book).
-n(girl).
-n(boy).
-
-tv --> [TV], {tv(TV)}.       /* transitive verb */
-tv(gives).
-tv(reads).
+verb(V) --> [V], { verb(V) }.
