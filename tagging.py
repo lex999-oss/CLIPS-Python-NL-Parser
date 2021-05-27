@@ -1,118 +1,80 @@
 import nltk
 import clips
-import string
+
+
+def validate_sentence_by_rules(set_of_rules, sentence_tags):
+    '''
+    :param set_of_rules: array of rules defined previously
+    :param sentence_tags: the tags for the sentence we want to parse
+    :return: 1 if the sentence cannot be matched with the rules, 2 otherwise
+    '''
+    rule_wrong = '''
+    (defrule wrong
+        =>
+        (printout t "Wrong!" crlf))
+    '''
+    env = clips.Environment()
+    for counter, element in enumerate(set_of_rules):
+        rule = '''
+        (defrule rule%s
+            (sentence %s)
+            =>
+            (printout t "Correct!" crlf))
+        ''' % (str(counter), element)
+        env.build(rule)
+    env.build(rule_wrong)
+    sentence = ''
+    for element in sentence_tags:
+        sentence += element
+        sentence += ' '
+    sentence = sentence[:-1]
+
+    # print(sentence)
+
+    fact_string = f'(sentence {sentence})'
+    fact = env.assert_string(fact_string)
+    template = fact.template
+
+    assert template.implied == True
+
+    validation_result = env.run()
+    return validation_result
+
+
+# main driver program:
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 
-# input text from file or taken from user input
+rules = ["NN" "VBD" "."]
+while 1:
+    # user input
+    sentence = input("Please introduce a sentence or text you want to proccess : ")
+    # print("Your given input is : ", sentence)
 
-# from file
-f = open("text.txt", "r")
-text = f.read()
-text = text.translate(str.maketrans('', '', string.punctuation))
-print(text)
+    tokens = nltk.word_tokenize(sentence)
+    tagged = nltk.pos_tag(tokens)
 
-# user input
-# print("Please introduce a sentence or text you want to proccess : ")
-# sentence = input()
-# print("Your given input is : ", sentence)
+    sentence_tags = []
+    for t in tagged:
+        sentence_tags.append(t[1])
+    cons = validate_sentence_by_rules(rules, sentence_tags)
+    if cons == 1:
+        print("""Sentence = "%s" is not parsable with the current set of rules.""" % sentence)
+        add_to_rules = input("Do you want to add this to the set of rules?")
+        if add_to_rules == "YES" or add_to_rules == "Yes" or add_to_rules == "yes":
+            new_rule = ""
+            for elem in sentence_tags:
+                new_rule += elem
+                new_rule += " "
+            new_rule = new_rule.rstrip(new_rule[-1])
+            if sentence_tags not in rules:
+                rules.append(new_rule)
 
-tokens = nltk.word_tokenize(text)
-tagged = nltk.pos_tag(tokens)
-
-print(tagged)
-
-to_parse = ""
-for t in tagged:
-    to_parse += t[1]
-    to_parse += " "
-
-environment = clips.Environment()
-
-# # assert a new fact through its template
-# fact = environment.assert_string('(sentence ' + to_parse + ')')
-#
-# print(fact.asserted)
-#
-# # execute the activations in the agenda
-# environment.run()
-
-deffacts = """
-(deffacts facts
-        (waiting_input)
-        (answer)
-        (rule G1 S NN  A)
-        (rule G2 A VBD EPS)
-        (rule G3 A NN C)
-        (rule G4 C VBD EPS)
-        )
-        """
-#         (rule G2  A librarie B)
-#         (rule G3  B am C)
-#         (rule G4  C cumparat D)
-#         (rule G5  D o E)
-# 		(rule G6  E carte EPS)
-# 		(rule G7  S Am G)
-# 		(rule G8  G citit H)
-# 		(rule G9  H o E)
-# 		(rule G10  H la I)
-# 		(rule G11  I librarie EPS)
-# 		(rule G12  G cumparat J)
-# 		(rule G13  J si K)
-# 		(rule G14  K am C)
-# 		(rule G15  C citit H)
-# )
-# """
-read_input = """
-(defrule read_input
-        ?a <- (waiting_input)
-        =>
-        (printout t "Insert sentence: " crlf)
-        (assert (text S (explode$ (readline))))
-
-        (retract ?a)
-)
-"""
-
-apply_rule = """
-(defrule apply_rule
-        (rule ?g ?nonterminal ?first ?next)
-        ?a <- (text ?nonterminal ?first $?rest)
-        ?b <- (answer $?steps)
-        =>
-        (assert (text ?next $?rest))
-        (assert (answer $?steps ?g))
-
-        (retract ?a)
-        (retract ?b)
-)
-"""
-succes = """
-(defrule success
-        ?a <- (text EPS)
-        (answer $?steps)
-        =>
-        (printout t "YES" $?steps crlf)
-
-        (retract ?a)
-)
-"""
-
-failure = """
-(defrule failure
-        ?a <- (text $?)
-        =>
-        (printout t "NO" crlf)
-
-        (retract ?a)
-)
-"""
-environment.clear()
-environment.build(deffacts)
-environment.build(read_input)
-environment.build(apply_rule)
-environment.build(failure)
-environment.build(succes)
-environment.reset()
-environment.run()
+    else:
+        print("""Sentence = "%s" is parsable with the current set of rules.""" % sentence)
+    exit = input("Do you want to exit?")
+    if exit == "YES" or exit == "Yes" or exit == "yes":
+        break
+    else:
+        continue
